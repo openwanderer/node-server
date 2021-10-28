@@ -26,11 +26,11 @@ Note that these have been modified in some cases compared to the PHP server. Not
 
 `POST /panorama/:id([0-9]+)/move` - moves the panorama position to the given latitude and longitude, supplied as `lat` and `lon` fields within a JSON object sent in the request body. 
 
-`POST /panorama/moveMulti` - moves multiple panoramas. A JSON object containing the panorama IDs as keys and JSON objects as specified in `move`, above, should be supplied.
+`POST /panorama/moveMulti` - moves multiple panoramas. A JSON array containing JSON objects as specified in `move`, above, **with the addition of an `id` field containing the ID for each panorama**, should be supplied.
 
-`POST /panorama/upload` - uploads a panorama, supplied as POST data `file` with a type of `file`.
+`POST /panorama/upload` - uploads a panorama, supplied as POST data `file` with a type of `file`. Returns JSON object with an `id` field containing the allocated panorama ID.
 
-`POST /panorama/sequence/create` - creates a new sequence. Expects a JSON array containing the panorama IDs which will make up the sequence, in intended sequence order, sent within the request body. 
+`POST /panorama/sequence/create` - creates a new sequence. Expects a JSON array containing the panorama IDs which will make up the sequence, in intended sequence order, sent within the request body. Returns JSON object with a `seqid` field containing the allocated sequence ID.
 
 `GET /panorama/sequence/:id([0-9]+)` - retrieves a sequence, with the full details of the panoramas contained within it (see `GET /panorama/:id` above) as a JSON array of objects.
 
