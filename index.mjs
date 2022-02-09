@@ -1,11 +1,10 @@
 import 'dotenv/config';
 import express from 'express';
-import bodyParser from 'body-parser';
 import panorama from './routes/panorama.mjs';
 import fileUpload from 'express-fileupload';
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 app.use(fileUpload({
 	useTempFiles: true,
