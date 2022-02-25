@@ -162,7 +162,7 @@ export default class PanoController {
                     if(warnings.length > 0) {
                         returnData.warning = warnings;
                     }
-                    req.files.file.mv(`${process.env.PANO_DIR}/${returnData.id}.jpg`);
+                    req.files.file.mv(`${process.env.RAW_UPLOADS}/${returnData.id}.jpg`);
                     res.json(returnData);
                 } else {
                     res.status(500).json({error: 'Panorama not added to database'});
