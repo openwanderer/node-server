@@ -40,7 +40,8 @@ Environment variables
 
 Configuring the Openwanderer-server is done through environment-variables. Following variables are currently supported and should be provided:
 
-- `PANO_DIR` - the directory where panorama files will be uploaded to.
+- `PANO_DIR` - the directory where panorama files will be served from.
+- `RAW_UPLOADS` - the directory where panorama files will be uploaded to. This may be different to `PANO_DIR` to allow for processing steps (e.g. anonymisation, etc).
 - `TMPDIR` - a temporary directory used during the upload process.
 - `MAX_FILE_SIZE` - the maximum file size to accept for panoramas, in MB. 
 - `DB_USER` - your database user.
