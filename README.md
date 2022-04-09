@@ -2,7 +2,6 @@
 
 A re-implementation of the OpenWanderer server in Node.js and Express.
 
-
 API endpoints
 -------------
 
@@ -51,3 +50,8 @@ Configuring the Openwanderer-server is done through environment-variables. Follo
 OpenWanderer supports the `.env` file format to control environment variables. In case you want to use a `.env`-file for setting the required environment variables, you should create one in the root directory for your OpenWanderer app.
 
 See the `.env.example` file for an example.
+
+Updates
+-------
+
+v0.3.0 (2022-04-09): now initialise server via function taking Express app object as an argument, to allow easier addition of custom middleware elsewhere in app. Update dependencies.

@@ -1,9 +1,12 @@
 import express from 'express';
-const router = express.Router();
 import db from '../db/index.mjs';
 
 import PanoController from '../controllers/panorama.mjs';
+
+
 const controller = new PanoController(db);
+const router = express.Router();
+
 
 router.get('/:id(\\d+)', controller.findById.bind(controller));
 router.get('/:id(\\d+).jpg', controller.getImage.bind(controller));
