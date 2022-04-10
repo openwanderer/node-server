@@ -51,14 +51,6 @@ export default class PanoDao {
         return updatedRows;
     }
 
-    async moveMulti(panos) {
-        let nMoved = 0;
-        for(let obj of panos) {
-            nMoved += await this.doMovePano(obj.id, obj.lon, obj.lat);
-        }
-        return nMoved;
-    }
-
     async addPano(geom, poseheadingdegrees, ele=null) {
         const dbres = await this.db.query('INSERT INTO panoramas (the_geom, timestamp, poseheadingdegrees, ele) VALUES (ST_GeomFromText($1, 4326), $2, $3, $4) RETURNING id', [geom, Math.round(new Date().getTime()/1000), poseheadingdegrees, ele]);
         return dbres.rows.length == 1 ? dbres.rows[0].id : 0;

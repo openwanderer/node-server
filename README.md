@@ -2,6 +2,29 @@
 
 A re-implementation of the OpenWanderer server in Node.js and Express.
 
+Example usage (0.4)
+-------------------
+
+```javascript
+import express from 'express'; 
+const app = express();
+
+// Import the initialisation function for the OpenWanderer server
+import { initOWServer } from 'openwanderer-server';
+
+// Call the initialisation function. This returns a middleware to setup a DAO
+// attached to the request object (req.panoDao) plus a router for the endpoints
+// (listed below). The former allows you to setup additional middleware to 
+// perform such things as checking for an authenticated user or administrator.
+
+const { initDao, panoRouter } = initOWServer(app);
+
+// Use the middleware and the router for the /panorama route.
+app.use('/panorama', initDao, panoRouter);
+
+app.listen(3000);
+```
+
 API endpoints
 -------------
 
@@ -33,6 +56,10 @@ Note that these have been modified in some cases compared to the PHP server. Not
 
 `GET /panorama/sequence/:id([0-9]+)` - retrieves a sequence, with the full details of the panoramas contained within it (see `GET /panorama/:id` above) as a JSON array of objects.
 
+Database
+--------
+
+Requires a PostGIS database. PostGIS has been chosen as it is used for the standard OpenStreetMap rendering database, which allows OpenWanderer-based apps (e.g. [OpenTrailView](https://opentrailview.org) ) to use a common database for the panoramas and for the OSM data to link them together.
 
 Environment variables
 ---------------------
@@ -54,4 +81,4 @@ See the `.env.example` file for an example.
 Updates
 -------
 
-v0.3.0 (2022-04-09): now initialise server via function taking Express app object as an argument, to allow easier addition of custom middleware elsewhere in app. Update dependencies.
+v0.4.0 (2022-04-10): now initialise server via function taking Express app object as an argument, to allow easier addition of custom middleware elsewhere in app. Update dependencies.

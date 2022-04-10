@@ -6,12 +6,12 @@ import { promises as fs } from 'fs';
 export default class PanoController {
 
     constructor(db) {
-        this.dao = new PanoDao(db);
+        this.db = db;
     }
 
     async findById(req, res) {
         try {
-            const row = await this.dao.findById(req.params.id);
+            const row = await req.panoDao.findById(req.params.id);
             if(row === null) {
                 res.status(404).json({error:"Cannot find panorama with that ID"});
             } else {
@@ -48,7 +48,7 @@ export default class PanoController {
 
     async deletePano(req, res) {
         try {
-            const rowCount = await this.dao.deletePano(req.params.id);
+            const rowCount = await req.panoDao.deletePano(req.params.id);
             if(rowCount == 1) {
                 await fs.unlink(`${process.env.PANO_DIR}/${req.params.id}.jpg`);
             }
@@ -63,7 +63,7 @@ export default class PanoController {
         try {    
             const regex = /^[\d\.\-]+$/;
             if(regex.exec(req.params.lon) && regex.exec(req.params.lat)) {
-                const row = await this.dao.findNearest(req.params.lon, req.params.lat);
+                const row = await req.panoDao.findNearest(req.params.lon, req.params.lat);
                 if(row === null) {
                     res.status(404).json({error: 'No nearest pano found'});
                 } else {
@@ -81,7 +81,7 @@ export default class PanoController {
         try {
             const bbox = req.query.bbox.split(',').filter( (value,i) => /^[\d\-\.]+$/.exec(value) && (value>=-90 && value<=90 || (i%2==0 && value>=-180 && value<=180))).map (value => parseFloat(value));
             if(bbox.length == 4 && bbox[0] < bbox[2] && bbox[1] < bbox[3])  {
-                const rows = await this.dao.findByBbox(bbox);
+                const rows = await req.panoDao.findByBbox(bbox);
                 res.json({
                     features: rows.map ( row => {
                         const props = { };
@@ -111,7 +111,7 @@ export default class PanoController {
 
     async rotate(req, res) {
         try {
-            const rowCount = await this.dao.rotate(req.params.id, req.body.pan, req.body.tilt, req.body.roll);
+            const rowCount = await req.panoDao.rotate(req.params.id, req.body.pan, req.body.tilt, req.body.roll);
             res.status(rowCount > 0 ? 200 : 404).json({'rotated': rowCount});
         } catch(e) {
             res.status(500).json({error: e});
@@ -120,7 +120,7 @@ export default class PanoController {
 
     async move(req, res) {
         try {
-            const updatedRows = await this.dao.move(req.params.id, req.body.lon, req.body.lat);
+            const updatedRows = await req.panoDao.move(req.params.id, req.body.lon, req.body.lat);
             res.status(updatedRows > 0 ? 200 : 404).json({'moved': updatedRows });
         } catch(e) {
             res.status(500).json({error: e});
@@ -129,7 +129,11 @@ export default class PanoController {
 
     async moveMulti(req, res) {
         try {
-            let nMoved = await this.dao.moveMulti(req.body);    
+            let nMoved = 0;
+            for(let obj of panos) {
+                const pano = await req.panoDao.findById(obj.id);
+                nMoved += await this.doMovePano(obj.id, obj.lon, obj.lat);
+            }
             res.status(200).json({'moved': nMoved});
         } catch(e) {
             res.status(500).json({error: e});
@@ -154,7 +158,7 @@ export default class PanoController {
                     warnings.push("No orientation information; you'll have to later rotate manually");
                     data.PoseHeadingDegrees = 0;
                 }
-                const id = await this.dao.addPano(geom, data.PoseHeadingDegrees);
+                const id = await req.panoDao.addPano(geom, data.PoseHeadingDegrees);
                 if(id > 0) {
                     const returnData = {
                         id: id
@@ -177,7 +181,7 @@ export default class PanoController {
 
     async findNearby(req, res) {
         try {
-            const rows = await this.dao.findNearby(req.params.lon, req.params.lat, req.params.limit);
+            const rows = await req.panoDao.findNearby(req.params.lon, req.params.lat, req.params.limit);
             res.json(rows);
         } catch (e) {
             res.status(500).json({error: e});    
@@ -186,7 +190,7 @@ export default class PanoController {
 
     async findUnauthorised(req, res) {
         try {
-            const rows = await this.dao.findUnauthorised();
+            const rows = await req.panoDao.findUnauthorised();
             res.json(rows);
         } catch (e) {
             res.status(500).json({error: e});    
@@ -195,7 +199,7 @@ export default class PanoController {
 
     async findUnpositioned(req, res) {
         try {
-            const rows = await this.dao.findUnpositioned();
+            const rows = await req.panoDao.findUnpositioned();
             res.json(rows);
         } catch (e) {
             res.status(500).json({error: e});    
@@ -204,11 +208,11 @@ export default class PanoController {
 
     async createSequence(req, res) {
         try {
-            const panos = (await Promise.all( req.body.map ( id =>  { return this.dao.findById(id) } )
+            const panos = (await Promise.all( req.body.map ( id =>  { return req.panoDao.findById(id) } )
             )).filter(pano => pano != null);
             
             if(panos.length > 0) {
-                const seqid = await this.dao.createSequence(panos);
+                const seqid = await req.panoDao.createSequence(panos);
                 res.status(seqid>0 ? 200: 400).send({seqid: seqid});
             } else {
                 res.status(404).json({error: "No pano IDs could be found."});
@@ -220,7 +224,7 @@ export default class PanoController {
 
     async getSequence(req, res) {
         try {
-            const seq = await this.dao.getSequence(req.params.id);
+            const seq = await req.panoDao.getSequence(req.params.id);
             if(seq === null) {
                 res.status(404).json({error: "No sequence with that ID could be found."});
             } else {
